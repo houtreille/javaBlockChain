@@ -1,9 +1,17 @@
 package ebloodCoin.blockchain.crypto.security.encryption;
 
-public class TestAsymetricEncryptionRSA {
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-	public void testEncryption() {
+import org.junit.Test;
+
+public class AsymetricEncryptionRSATest {
+
+	@Test
+	public void testEncrypt() {
 		String s = "XXX";
+		
+		
 		
 		try {
 			AsymentricEncryption encryption = new AsymetricEncryptionRSA();
@@ -19,7 +27,7 @@ public class TestAsymetricEncryptionRSA {
 			byte[] sig = encryption.getSignature(null, s);
 			boolean verfied = encryption.verifySignature(null, s, sig);
 			
-			assert(verfied);
+			assertTrue(verfied);
 			
 			
 		} catch (Exception e) {

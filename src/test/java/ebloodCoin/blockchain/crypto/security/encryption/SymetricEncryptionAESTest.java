@@ -1,10 +1,15 @@
 package ebloodCoin.blockchain.crypto.security.encryption;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Date;
 
-public class TestSymetricEncryptionAES {
+import org.junit.Test;
 
-	public void testEncryption() {
+public class SymetricEncryptionAESTest {
+
+	@Test
+	public void testEncrypt() {
 		String s = new Date().toString();
 		
 		try {
@@ -15,7 +20,7 @@ public class TestSymetricEncryptionAES {
 			
 			String decryptedObject = new String(encryption.decrypt(encodedText));
 			
-			assert(decryptedObject.equals(s));
+			assertTrue(decryptedObject.equals(s));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

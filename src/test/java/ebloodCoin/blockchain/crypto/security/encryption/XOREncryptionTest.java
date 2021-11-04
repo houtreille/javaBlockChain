@@ -1,8 +1,18 @@
 package ebloodCoin.blockchain.crypto.security.encryption;
 
-public class TestXOREncryption {
+import static org.junit.Assert.*;
 
-	public void testEncryption() {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
+ 
+
+public class XOREncryptionTest {
+
+	@Test
+	public void testEncrypt() {
+		//fail("Not yet implemented");
 		
 		String message = "XXX";
 		
@@ -18,7 +28,7 @@ public class TestXOREncryption {
 			
 			System.out.println(new String(decryptedMessage));
 			
-			assert(message.equals(new String(decryptedMessage)));
+			assertTrue(message.equals(new String(decryptedMessage)));
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -26,4 +36,6 @@ public class TestXOREncryption {
 		}
 	}
 	
+	
+
 }

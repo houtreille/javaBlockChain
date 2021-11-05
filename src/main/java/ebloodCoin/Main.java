@@ -9,6 +9,8 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import com.google.gson.GsonBuilder;
+
 import ebloodCoin.blockchain.BasicBlock;
 import ebloodCoin.blockchain.Wallet;
 import ebloodCoin.blockchain.transaction.Transaction;
@@ -100,6 +102,9 @@ public class Main {
 			
 			trans.signTransaction(senderKey.getPrivate());
 			trans.print();
+			
+//			String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(trans);		
+//			System.out.println(blockchainJson);
 			
 			
 		} catch (Exception e) {

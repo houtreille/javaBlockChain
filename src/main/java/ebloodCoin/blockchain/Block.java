@@ -10,9 +10,7 @@ public interface Block {
 	public Boolean mineBlock(int prefixDifficulty) throws Exception;
 	public String getHash();
 	public String getPreviousHash();
-	public int getId();
 	
 	public boolean addTransaction(Object transaction) throws Exception ;
-	
-	public String getData();
+	public Object getData(Object param);
 }

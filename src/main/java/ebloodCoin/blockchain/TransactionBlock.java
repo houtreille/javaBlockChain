@@ -6,21 +6,23 @@ import java.util.Date;
 
 import ebloodCoin.blockchain.crypto.hashing.HashingFunction;
 import ebloodCoin.blockchain.crypto.hashing.SHA256HashingFunction;
+import ebloodCoin.blockchain.transaction.Transaction;
 import ebloodCoin.utils.SecurityUtils;
 import ebloodCoin.utils.StringUtils;
 
-public class BasicBlock implements Block, Serializable {
+public class TransactionBlock implements Block, Serializable {
 
+	private static final int TRANSACTION_UPPER_LIMIT = 2;
 	private static final long serialVersionUID = 1L;
 	private String hashId;
 	private String previousHashId;
 	private long timeStamp;
-	private ArrayList<String> transactions = new ArrayList<String>();
+	private ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 	private int nonce = 0; // keep increasing till the required hash is found
-	private static int difficultyLevel = 10;
+	private static int difficultyLevel = 3;
 	
 	
-	public BasicBlock(String previousHashId, int difficultyLevel) {
+	public TransactionBlock(String previousHashId, int difficultyLevel) {
 		this.previousHashId = previousHashId;
 		this.timeStamp = new Date().getTime();
 		this.difficultyLevel = difficultyLevel;
@@ -34,14 +36,12 @@ public class BasicBlock implements Block, Serializable {
 		
 		sb.append(previousHashId + Long.toHexString(timeStamp));
 		
-		for (String transaction : transactions) {
-			sb.append(transaction);
+		for (Transaction transaction : transactions) {
+			sb.append(transaction.getHashId());
 		}
 		
 		sb.append(difficultyLevel);
 		sb.append(nonce);
-		
-		//System.out.println(  sb.toString() + " -> " + hashing.hash(sb.toString()));
 		
 		return SecurityUtils.getDefaultHashingFunction().hash(sb.toString());
 	}
@@ -68,14 +68,26 @@ public class BasicBlock implements Block, Serializable {
 	}
 
 	public boolean addTransaction(Object transaction) throws Exception {
-		transactions.add((String)transaction);
-		return true;
+		if(transactions.size() <= TRANSACTION_UPPER_LIMIT) {
+			transactions.add((Transaction)transaction);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
-	public Object getData(Object param) {
-		return transactions.get((Integer)param);
+	public Object getData(Object i) {
+		return transactions.get((Integer)i);
 	}
 	
+	public int getTotalTransactionSize() {
+		return transactions.size();
+	}
 	
+	public static void main(String args[]) {
+		
+		
+		
+	}
 	
 }

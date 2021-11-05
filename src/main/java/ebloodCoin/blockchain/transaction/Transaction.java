@@ -1,7 +1,6 @@
 package ebloodCoin.blockchain.transaction;
 
 import java.io.Serializable;
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -61,6 +60,35 @@ public class Transaction implements Serializable, Hashable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	
+	public boolean prepareOutputUTXOs() {
+		if(receivers.length != fundToTransfers.length) {
+			return false;
+		}
+		
+		double totalCost = getTotalFundToTransfer() + TRANSACTION_FEE;
+		double available = 0.0;
+		
+		for (int i = 0; i < fundToTransfers.length; i++) {
+			available += fundToTransfers[i];
+		}
+		
+		if(available < totalCost) {
+			return false;
+		}
+		
+		outputs.clear();
+		for (int i = 0; i < receivers.length; i++) {
+			UTXo ut = new UTXo(getHashId(), receivers[i], sender, fundToTransfers[i]);
+			outputs.add(ut);
+		}
+		
+		UTXo change = new UTXo(getHashId(), sender, sender, available - totalCost);
+		outputs.add(change);
+		
+		return true;
 	}
 	
 	public void signTransaction(PrivateKey key) {
@@ -166,6 +194,16 @@ public class Transaction implements Serializable, Hashable {
 		return hashId;
 	}
 	
+	public PublicKey getSender() {
+		return sender;
+	}
+
+	public PublicKey[] getReceivers() {
+		return receivers;
+	}
+
+	
+	
 	public void print() {
 		System.out.println("Transaction{");
 		System.out.println("\tID:"+getHashId());
@@ -186,55 +224,6 @@ public class Transaction implements Serializable, Hashable {
 		System.out.println("}");
 	}
 	
-	public static void main(String args[]) {
-		try {
-			KeyPair senderKey = SecurityUtils.generateKeyPair();
-			
-			PublicKey[] receivers = new PublicKey[2];
-			double[] fundToTransfer = new double[receivers.length];
-			
-			for (int i = 0; i < fundToTransfer.length; i++) {
-				receivers[i] = SecurityUtils.generateKeyPair().getPublic();
-				fundToTransfer[i] = (i + 1) * 100;
-			}
-			
-			UTXo input = new UTXo("0", senderKey.getPublic(), senderKey.getPublic(), 1000);
-			ArrayList<UTXo> inputs = new ArrayList<UTXo>();
-			inputs.add(input);
-			
-			Transaction trans = new Transaction(senderKey.getPublic(), receivers, fundToTransfer, inputs);
-			
-			//Make sure sender total balance >= total transaction cost
-
-			double availableFund = 0.;
-			for (UTXo in : inputs) {
-				availableFund += in.getAmount();
-			}
-			
-			
-			double totalCost = trans.getTotalFundToTransfer() + TRANSACTION_FEE;
-			
-			for (int i = 0; i < receivers.length; i++) {
-				UTXo outputForReceiver = new UTXo(trans.getHashId(), receivers[i], senderKey.getPublic(), fundToTransfer[i]);
-				trans.addOutputUTXO(outputForReceiver);
-			}
-			
-			UTXo change = new UTXo(trans.getHashId(), senderKey.getPublic(), senderKey.getPublic(), totalCost - availableFund);
-			trans.addOutputUTXO(change);
-			
-			trans.signTransaction(senderKey.getPrivate());
-			trans.print();
-			
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-	}
-
 	
 }
 	

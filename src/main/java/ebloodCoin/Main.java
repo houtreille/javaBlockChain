@@ -12,6 +12,7 @@ import java.util.Scanner;
 import com.google.gson.GsonBuilder;
 
 import ebloodCoin.blockchain.BasicBlock;
+import ebloodCoin.blockchain.Block;
 import ebloodCoin.blockchain.Wallet;
 import ebloodCoin.blockchain.transaction.Transaction;
 import ebloodCoin.blockchain.transaction.UTXo;
@@ -20,6 +21,26 @@ import ebloodCoin.utils.SecurityUtils;
 public class Main {
 
 	public static void main(String[] args) {
+		
+		//Test Block
+		Block testBlock = new BasicBlock("0", 20);
+		
+		for (int i = 0; i < 10; i++) {
+			try {
+				testBlock.addTransaction("Transaction"+i);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			testBlock.mineBlock(3);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		/*
 		try {

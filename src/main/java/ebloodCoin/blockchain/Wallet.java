@@ -10,9 +10,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 import java.security.KeyPair;
-import java.util.Scanner;
+import java.security.PublicKey;
+import java.util.ArrayList;
 
 import ebloodCoin.blockchain.crypto.security.encryption.XOREncryption;
+import ebloodCoin.blockchain.transaction.Transaction;
+import ebloodCoin.blockchain.transaction.UTXo;
 import ebloodCoin.utils.SecurityUtils;
 
 
@@ -22,6 +25,8 @@ public class Wallet {
 	private String walletName;
 	private static String keyFolder = "./WalletKeys/";
 	private XOREncryption passwordEncryption = new XOREncryption();
+	private Blockchain localLedger = null; //LET EACH WALLET have a local blockchain
+	
 	
 	public Wallet() {
 		
@@ -103,8 +108,65 @@ public class Wallet {
 		this.walletName = walletName;
 	}
 	
+	public Transaction transferFund(PublicKey[] receivers, double[] fundToTransfer) {
+		
+		ArrayList<UTXo> unspent = new ArrayList<UTXo>();
+		
+		double available = localLedger.findUnspentUTXos(keypair.getPublic(), unspent);
+		
+		double totalToTransfer = 0.;
+		for (int i = 0; i < fundToTransfer.length; i++) {
+			totalToTransfer += fundToTransfer[i];
+		}
+		
+		if(available < totalToTransfer) {
+			System.out.println("Insufficient funds");
+			return null;
+		}
+		
+		//Create Input for the transaction
+		ArrayList<UTXo> inputs = new ArrayList<UTXo>();
+		available = 0;
+		
+		for(int i = 0; i < unspent.size() && available < totalToTransfer; i++) {
+			UTXo ut = unspent.get(i);
+			available += ut.getAmount();
+			inputs.add(ut);
+		}
+		
+		Transaction t = new Transaction(keypair.getPublic(), receivers, fundToTransfer, inputs);
+		
+		boolean b = t.prepareOutputUTXOs();
+		
+		if(b) {
+			return t;
+		} else {
+			return null;
+		}
+	}
+	
+	public Transaction transferFund(PublicKey receiver, double fundToTransfer) {
+		return transferFund(new PublicKey[] {receiver}, new double[] {fundToTransfer});
+	}
+	
+	
+	public double getCurrentBalance() {
+		return localLedger.getCheckBalance(keypair.getPublic());
+	}
+	
 	public String getWalletName() {
 		return walletName;
 	}
+	
+	public synchronized Blockchain getLocalLedger() {
+		return localLedger;
+	}
+
+	
+	public synchronized void setLocalLedger(Blockchain blockchain) {
+		this.localLedger = blockchain;
+	}
+	
+	
 
 }

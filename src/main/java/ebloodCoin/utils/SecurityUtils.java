@@ -7,12 +7,12 @@ import java.security.PublicKey;
 
 import ebloodCoin.blockchain.crypto.hashing.HashingFunction;
 import ebloodCoin.blockchain.crypto.hashing.SHA256HashingFunction;
-import ebloodCoin.blockchain.crypto.security.encryption.AsymentricEncryption;
+import ebloodCoin.blockchain.crypto.security.encryption.Signable;
 import ebloodCoin.blockchain.crypto.security.encryption.AsymetricEncryptionRSA;
 
 public class SecurityUtils {
 
-	private static AsymentricEncryption encryption = new AsymetricEncryptionRSA();
+	private static Signable encryption = new AsymetricEncryptionRSA();
 	private static HashingFunction hashing = new SHA256HashingFunction();
 	
 	public static boolean verifySignature(PublicKey sender, byte[] signature, String message) throws Exception {
@@ -33,6 +33,29 @@ public class SecurityUtils {
 	public static HashingFunction getDefaultHashingFunction() {
 		return hashing;
 	}
+	
+	//Merkle tree
+	public static String computeMerkleTreeRootHash(Object[] hashes) throws Exception{
+		return computeMerkleTreeRootHash(hashes, 0, hashes.length - 1);
+	}
+	
+	public static String computeMerkleTreeRootHash(Object[] hashes, int from, int end) throws Exception{
+		
+		int deep = end - from + 1;
+		
+		//bottom case
+		if(deep == 1) {
+			return hashes[end].toString();
+		} else if(deep == 2) {
+			return hashing.hash(hashes[from].toString() + hashes[end].toString());
+		} else {
+			int c = (from + end) / 2;
+			String msg = computeMerkleTreeRootHash(hashes, from, c) + computeMerkleTreeRootHash(hashes, c + 1, end);
+			return hashing.hash(msg);
+		}
+	}
+	
+	
 	
 	
 }

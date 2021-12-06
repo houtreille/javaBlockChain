@@ -8,7 +8,7 @@ import java.security.Signature;
 
 import javax.crypto.Cipher;
 
-public class AsymetricEncryptionRSA implements AsymentricEncryption {
+public class AsymetricEncryptionRSA implements Signable {
 
 	KeyPairGenerator keyGenerator = null;
 	KeyPair keypair = null;

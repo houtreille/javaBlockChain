@@ -12,7 +12,7 @@ import javax.crypto.Cipher;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-public class ECDSAsymetricEncryption implements AsymentricEncryption {
+public class ECDSAsymetricEncryption implements Signable {
 
 	KeyPairGenerator keyGenerator = null;
 	KeyPair keypair = null;

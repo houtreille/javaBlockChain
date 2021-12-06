@@ -71,8 +71,8 @@ public class Transaction implements Serializable, Hashable {
 		double totalCost = getTotalFundToTransfer() + TRANSACTION_FEE;
 		double available = 0.0;
 		
-		for (int i = 0; i < fundToTransfers.length; i++) {
-			available += fundToTransfers[i];
+		for (int i = 0; i < inputs.size(); i++) {
+			available += inputs.get(i).getAmount();
 		}
 		
 		if(available < totalCost) {
@@ -94,7 +94,7 @@ public class Transaction implements Serializable, Hashable {
 	public void signTransaction(PrivateKey key) {
 		try {
 			if(signature == null && !signed) { // be sure it safe
-				signature = SecurityUtils.signTransaction(key, getMessageData());
+				signature = SecurityUtils.signTransaction(key, hashing.hash(getMessageData()));
 				signed = true;
 			}
 			
@@ -106,7 +106,7 @@ public class Transaction implements Serializable, Hashable {
 	
 	public Boolean verifyTransaction(){
 		try {
-			return SecurityUtils.verifySignature(sender, signature, getMessageData());
+			return SecurityUtils.verifySignature(sender, signature, hashing.hash(getMessageData()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -201,27 +201,36 @@ public class Transaction implements Serializable, Hashable {
 	public PublicKey[] getReceivers() {
 		return receivers;
 	}
+	
+	
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return super.toString();
+	}
 
-	
-	
 	public void print() {
-		System.out.println("Transaction{");
-		System.out.println("\tID:"+getHashId());
-		System.out.println("\tSender:"+StringUtils.getKeyString(sender));
-		System.out.println("\ttotal fund to be transferred:"+ getTotalFundToTransfer());
-		System.out.println("\tReceivers:");
+		
+		StringUtils.displayTransaction(this, System.out, 0);
 		
 		
-		for (int i = 0; i < outputs.size() -1; i++) {
-			System.out.println("\t\t"+StringUtils.getKeyString(outputs.get(i).getReceiver()) + " " + outputs.get(i).getAmount());
-	
-		}
-		
-		System.out.println("\tFees"+TRANSACTION_FEE);
-		System.out.println("\tChange"+getOutputs().get(getOutputs().size() - 1).getAmount());
-		
-		System.out.println("\tSignature"+ verifyTransaction());
-		System.out.println("}");
+//		System.out.println("Transaction{");
+//		System.out.println("\tID:"+getHashId());
+//		System.out.println("\tSender:"+StringUtils.getKeyString(sender));
+//		System.out.println("\ttotal fund to be transferred:"+ getTotalFundToTransfer());
+//		System.out.println("\tReceivers:");
+//		
+//		
+//		for (int i = 0; i < outputs.size() -1; i++) {
+//			System.out.println("\t\t"+StringUtils.getKeyString(outputs.get(i).getReceiver()) + " " + outputs.get(i).getAmount());
+//	
+//		}
+//		
+//		System.out.println("\tFees"+TRANSACTION_FEE);
+//		System.out.println("\tChange"+getOutputs().get(getOutputs().size() - 1).getAmount());
+//		
+//		System.out.println("\tSignature"+ verifyTransaction());
+//		System.out.println("}");
 	}
 	
 	

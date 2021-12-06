@@ -12,11 +12,15 @@ import ebloodCoin.utils.StringUtils;
 
 public class TransactionBlock implements Block, Serializable {
 
+	
+
 	private static final int TRANSACTION_UPPER_LIMIT = 2;
 	private static final long serialVersionUID = 1L;
 	private String hashId;
 	private String previousHashId;
 	private long timeStamp;
+	
+
 	private ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 	private int nonce = 0; // keep increasing till the required hash is found
 	private static int difficultyLevel = 3;
@@ -84,10 +88,24 @@ public class TransactionBlock implements Block, Serializable {
 		return transactions.size();
 	}
 	
-	public static void main(String args[]) {
-		
-		
-		
+	
+	public long getTimeStamp() {
+		return timeStamp;
 	}
+	
+	public int getNonce() {
+		return nonce;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Block) {
+			if(    (((Block)obj).getHash()).equals(getHash())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	
 }

@@ -9,14 +9,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
+import java.security.Key;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import ebloodCoin.blockchain.crypto.security.encryption.XOREncryption;
 import ebloodCoin.blockchain.transaction.Transaction;
 import ebloodCoin.blockchain.transaction.UTXo;
+import ebloodCoin.utils.BlockchainUtils;
 import ebloodCoin.utils.SecurityUtils;
+import ebloodCoin.utils.StringUtils;
 
 
 public class Wallet {
@@ -26,7 +31,7 @@ public class Wallet {
 	private static String keyFolder = "./WalletKeys/";
 	private XOREncryption passwordEncryption = new XOREncryption();
 	private Blockchain localLedger = null; //LET EACH WALLET have a local blockchain
-	
+	public static HashMap<Key, String> walletNameMap = new HashMap<Key, String>();
 	
 	public Wallet() {
 		
@@ -42,11 +47,11 @@ public class Wallet {
 	
 	public Wallet(String walletName, String password) {
 		
-		super();
-		
 		try {
 			this.keypair = SecurityUtils.generateKeyPair();
 			this.walletName = walletName;
+			walletNameMap.put(keypair.getPublic(), walletName);
+			walletNameMap.put(keypair.getPrivate(), walletName);
 			retrieveWallet(walletName, password);
 			System.out.println("Successful wallet retrieval");
 			
@@ -106,6 +111,8 @@ public class Wallet {
 		ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(keyBytes));
 		this.keypair = (KeyPair)in.readObject();
 		this.walletName = walletName;
+		walletNameMap.put(keypair.getPublic(), walletName);
+		walletNameMap.put(keypair.getPrivate(), walletName);
 	}
 	
 	public Transaction transferFund(PublicKey[] receivers, double[] fundToTransfer) {
@@ -124,7 +131,7 @@ public class Wallet {
 			return null;
 		}
 		
-		//Create Input for the transaction
+		//Prepare Inputs
 		ArrayList<UTXo> inputs = new ArrayList<UTXo>();
 		available = 0;
 		
@@ -136,9 +143,11 @@ public class Wallet {
 		
 		Transaction t = new Transaction(keypair.getPublic(), receivers, fundToTransfer, inputs);
 		
+		//Prepare Outputs
 		boolean b = t.prepareOutputUTXOs();
 		
 		if(b) {
+			t.signTransaction(getPrivateKey());
 			return t;
 		} else {
 			return null;
@@ -163,10 +172,90 @@ public class Wallet {
 	}
 
 	
-	public synchronized void setLocalLedger(Blockchain blockchain) {
-		this.localLedger = blockchain;
+	public synchronized boolean setLocalLedger(Blockchain blockchain) {
+		
+		boolean b = false;
+		
+		try {
+			b = BlockchainUtils.validateBlockchain(blockchain);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(!b) {
+			System.out.println(getWalletName() +"] the incoming blockchain failed validation" );
+			return false;
+		}
+		
+		if(this.localLedger == null) {
+			this.localLedger = blockchain;
+			return true;
+		} else {
+			if((blockchain.getSize() > localLedger.getSize()) &&(blockchain.getGenesisMiner().equals(localLedger.getGenesisMiner()))) {
+				this.localLedger = blockchain;
+				return true;
+			} else if (blockchain.getSize() > localLedger.getSize()) {
+				System.out.println(getWalletName() +"] BLOCKChain is smaller than current one" );
+				return false;
+			} else {
+				System.out.println(getWalletName() +"] BLOCKChain has different genesis miner" );
+				return false;
+			}
+		}
 	}
 	
 	
+	public boolean validateTransaction(Transaction ts) {
+		if(ts == null) {
+			return false;
+		} else if(!ts.verifyTransaction()) {
+			return false;
+		}
+		
+		if(getLocalLedger() == null && !getLocalLedger().isTransactionExist(ts)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	public boolean verifyGuestBlock(TransactionBlockImproved block) throws Exception {
+		return verifyGuestBlock(block, getLocalLedger());
+	}
+	
+	public boolean verifyGuestBlock(TransactionBlockImproved block, Blockchain ledger) throws Exception {
+		//verify the signature
+		if(!block.verifySignature(block.getCreator())) {
+			return false;
+		}
+		
+		if(!StringUtils.hasMeetDifficultyLevel(block.getHash(), 3) || !block.getHash().equals(block.calculateBlockHash())) {
+			return false;
+		}
+		
+		if(!block.getPreviousHash().equals(ledger.getLastBlock().getHash())) {
+			return false;
+		}
+		
+		for (int i = 0; i < block.getTotalTransactionSize(); i++) {
+			Transaction trans = (Transaction)block.getData(i);
+			if(!validateTransaction(trans)) {
+				return false;
+			}
+		}
+		
+		//if(block.getRewardTransaction().getTotalFundToTransfer() > Blockchain.MINING_REWARD + block.gett)
+		
+		return true;
+	}
+	
+	
+	public PublicKey getPublicKey() {
+		return keypair.getPublic();
+	}
+	
+	public PrivateKey getPrivateKey() {
+		return keypair.getPrivate();
+	}
 
 }

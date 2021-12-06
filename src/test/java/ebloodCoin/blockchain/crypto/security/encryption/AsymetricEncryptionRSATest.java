@@ -14,7 +14,7 @@ public class AsymetricEncryptionRSATest {
 		
 		
 		try {
-			AsymentricEncryption encryption = new AsymetricEncryptionRSA();
+			Signable encryption = new AsymetricEncryptionRSA();
 			byte[] encodedText = encryption.encrypt(s);
 			
 			String encryptedObject = new String(encodedText);
